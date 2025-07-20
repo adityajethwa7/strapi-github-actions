@@ -11,9 +11,12 @@
     "develop": "strapi develop",
     "seed:example": "node ./scripts/seed.js",
     "start": "strapi start",
+    "start:ts": "ts-node src/index.ts",
     "strapi": "strapi",
     "upgrade": "npx @strapi/upgrade latest",
-    "upgrade:dry": "npx @strapi/upgrade latest --dry"
+    "upgrade:dry": "npx @strapi/upgrade latest --dry",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist build .cache .tmp"
   },
   "dependencies": {
     "@strapi/plugin-cloud": "5.18.0",
@@ -22,16 +25,19 @@
     "better-sqlite3": "11.3.0",
     "fs-extra": "^10.0.0",
     "mime-types": "^2.1.27",
+    "pg": "^8.16.3",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.0.0",
     "styled-components": "^6.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^20.19.8",
+    "@types/pg": "^8.15.4",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   },
   "engines": {
     "node": ">=18.0.0 <=22.x.x",
