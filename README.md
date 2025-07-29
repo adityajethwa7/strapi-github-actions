@@ -1,61 +1,212 @@
-# 🚀 Getting started with Strapi
+# Strapi AWS ECS Fargate Deployment
 
-Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
+This project contains a Strapi application configured for deployment on AWS using ECS Fargate, managed entirely via Terraform.
 
-### `develop`
+## Architecture Overview
 
-Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)
+The deployment creates the following AWS resources:
+
+- **ECR Repository**: Stores the Docker images
+- **ECS Cluster**: Manages the containerized application
+- **ECS Task Definition**: Defines the container configuration
+- **ECS Service**: Runs the application with Fargate launch type
+- **Application Load Balancer (ALB)**: Provides public access to the application
+- **Security Groups**: Controls network access
+- **IAM Roles**: Provides necessary permissions for ECS tasks
+- **CloudWatch Log Group**: Collects application logs
+
+## Prerequisites
+
+Before deploying, ensure you have the following installed:
+
+1. **AWS CLI** - [Installation Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+2. **Docker** - [Installation Guide](https://docs.docker.com/get-docker/)
+3. **Terraform** - [Installation Guide](https://learn.hashicorp.com/tutorials/terraform/install-cli)
+
+## AWS Configuration
+
+1. Configure your AWS credentials:
+   ```bash
+   aws configure
+   ```
+
+2. Ensure your AWS user has the following permissions:
+   - ECR (Elastic Container Registry)
+   - ECS (Elastic Container Service)
+   - EC2 (for VPC, Security Groups, Load Balancer)
+   - IAM (for roles and policies)
+   - CloudWatch (for logging)
+
+## Quick Start
+
+### Deploy the Application
+
+1. Clone this repository and navigate to the project directory:
+   ```bash
+   cd strapi-project
+   ```
+
+2. Run the deployment script:
+   ```bash
+   ./scripts/deploy.sh
+   ```
+
+The script will:
+- Check prerequisites and AWS credentials
+- Initialize Terraform
+- Build the Docker image
+- Push the image to ECR
+- Deploy the infrastructure
+- Wait for the service to become healthy
+- Display the application URL
+
+### Access Your Application
+
+After successful deployment, the script will output the Application Load Balancer URL. Your Strapi application will be accessible at:
+```
+http://your-alb-url.us-east-1.elb.amazonaws.com
+```
+
+### Clean Up Resources
+
+To destroy all AWS resources and clean up:
+```bash
+./scripts/cleanup.sh
+```
+
+## Manual Deployment Steps
+
+If you prefer to deploy manually, follow these steps:
+
+### 1. Initialize Terraform
+
+```bash
+cd terraform
+terraform init
+terraform workspace new dev  # or select existing workspace
+```
+
+### 2. Create ECR Repository
+
+```bash
+terraform apply -target=aws_ecr_repository.strapi -auto-approve
+```
+
+### 3. Build and Push Docker Image
+
+```bash
+# Get ECR repository URL
+ECR_URL=$(terraform output -raw ecr_repository_url)
+
+# Build the image
+docker build -t strapi-app:latest .
+
+# Login to ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_URL
+
+# Tag and push
+docker tag strapi-app:latest $ECR_URL:latest
+docker push $ECR_URL:latest
+```
+
+### 4. Deploy Infrastructure
+
+```bash
+terraform plan
+terraform apply -auto-approve
+```
+
+### 5. Get Application URL
+
+```bash
+terraform output alb_url
+```
+
+## Project Structure
 
 ```
-npm run develop
-# or
-yarn develop
+strapi-project/
+├── Dockerfile                 # Docker configuration for Strapi
+├── docker-compose.yml         # Local development setup
+├── package.json              # Node.js dependencies
+├── src/                      # Strapi application source code
+├── terraform/                # Terraform infrastructure code
+│   ├── main.tf              # Main infrastructure resources
+│   ├── iam.tf               # IAM roles and policies
+│   └── outputs.tf           # Output values
+└── scripts/                  # Deployment scripts
+    ├── deploy.sh            # Automated deployment script
+    └── cleanup.sh           # Resource cleanup script
 ```
 
-### `start`
+## Configuration
 
-Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-start)
+### Environment Variables
 
+The application uses the following environment variables in production:
+
+- `NODE_ENV=production`
+- `HOST=0.0.0.0`
+- `PORT=1337`
+- `DATABASE_CLIENT=sqlite`
+
+### Resource Specifications
+
+- **CPU**: 256 CPU units (0.25 vCPU)
+- **Memory**: 512 MB
+- **Storage**: Ephemeral (container-based)
+- **Database**: SQLite (for simplicity)
+
+## Monitoring and Logs
+
+- **CloudWatch Logs**: Application logs are automatically sent to CloudWatch
+- **ECS Console**: Monitor service health and task status
+- **ALB Health Checks**: Automatic health monitoring on port 1337
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Service fails to start**: Check CloudWatch logs for application errors
+2. **Cannot access application**: Verify security group rules and ALB configuration
+3. **Image push fails**: Ensure AWS credentials are configured and ECR repository exists
+4. **Terraform errors**: Check AWS permissions and resource limits
+
+### Useful Commands
+
+```bash
+# Check ECS service status
+aws ecs describe-services --cluster strapi-cluster-dev --services strapi-service-dev
+
+# View CloudWatch logs
+aws logs tail /ecs/strapi-dev --follow
+
+# Check ALB health
+aws elbv2 describe-target-health --target-group-arn <target-group-arn>
 ```
-npm run start
-# or
-yarn start
-```
 
-### `build`
+## Security Considerations
 
-Build your admin panel. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-build)
+- Application runs in private subnets with public ALB
+- Security groups restrict access to necessary ports only
+- IAM roles follow principle of least privilege
+- Container images are scanned by ECR
 
-```
-npm run build
-# or
-yarn build
-```
+## Cost Optimization
 
-## ⚙️ Deployment
+- Uses Fargate Spot pricing when possible
+- CloudWatch log retention set to 7 days
+- Resources are tagged for cost tracking
+- Auto-scaling can be configured based on demand
 
-Strapi gives you many possible deployment options for your project including [Strapi Cloud](https://cloud.strapi.io). Browse the [deployment section of the documentation](https://docs.strapi.io/dev-docs/deployment) to find the best solution for your use case.
+## Contributing
 
-```
-yarn strapi deploy
-```
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test the deployment
+5. Submit a pull request
 
-## 📚 Learn more
+## License
 
-- [Resource center](https://strapi.io/resource-center) - Strapi resource center.
-- [Strapi documentation](https://docs.strapi.io) - Official Strapi documentation.
-- [Strapi tutorials](https://strapi.io/tutorials) - List of tutorials made by the core team and the community.
-- [Strapi blog](https://strapi.io/blog) - Official Strapi blog containing articles made by the Strapi team and the community.
-- [Changelog](https://strapi.io/changelog) - Find out about the Strapi product updates, new features and general improvements.
-
-Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/strapi). Your feedback and contributions are welcome!
-
-## ✨ Community
-
-- [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
-- [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
-- [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
-
----
-
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
+This project is licensed under the MIT License.
