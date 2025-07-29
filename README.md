@@ -199,6 +199,32 @@ aws elbv2 describe-target-health --target-group-arn <target-group-arn>
 - Resources are tagged for cost tracking
 - Auto-scaling can be configured based on demand
 
+## Git Repository Management
+
+### Repository Size Optimization
+
+This repository has been optimized to stay under Git hosting limits (100MB) by excluding large files and directories:
+
+**Excluded Files and Directories:**
+- `terraform/.terraform/` - Terraform provider binaries (672MB+)
+- `terraform/*.tfstate*` - Terraform state files (contain sensitive data)
+- `data/uploads/` - User uploaded files and media
+- `node_modules/` - Node.js dependencies (auto-installed)
+- Build artifacts and temporary files
+
+**Important Notes:**
+- Terraform state is managed separately and should not be committed
+- Upload directories are recreated automatically by Strapi
+- Use `npm install` to restore node_modules after cloning
+- Run `terraform init` to download providers after cloning
+
+### Deployment Workflow
+
+1. **Clone Repository**: `git clone <repo-url>`
+2. **Install Dependencies**: `npm install`
+3. **Initialize Terraform**: `cd terraform && terraform init`
+4. **Deploy**: `./scripts/deploy.sh`
+
 ## Contributing
 
 1. Fork the repository
@@ -206,6 +232,11 @@ aws elbv2 describe-target-health --target-group-arn <target-group-arn>
 3. Make your changes
 4. Test the deployment
 5. Submit a pull request
+
+**Before Committing:**
+- Ensure no large files (>10MB) are added
+- Run `git status` to check file sizes
+- Test deployment scripts locally
 
 ## License
 

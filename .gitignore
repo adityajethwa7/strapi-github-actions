@@ -129,3 +129,134 @@ dist
 build
 .strapi-updater.json
 .strapi-cloud.json
+
+# Strapi uploads and data
+data/uploads/
+public/uploads/
+uploads/
+
+############################
+# Terraform
+############################
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+terraform.tfstate.d/
+
+# Terraform provider binaries and cache
+.terraform/
+.terraform.lock.hcl
+
+# Terraform variable files (may contain sensitive data)
+*.tfvars
+*.tfvars.json
+
+# Terraform plan files
+*.tfplan
+
+# Terraform crash log files
+crash.log
+crash.*.log
+
+############################
+# AWS and Cloud
+############################
+
+# AWS credentials
+.aws/
+aws-credentials.json
+
+# Cloud deployment artifacts
+deployment-artifacts/
+*.pem
+*.key
+
+############################
+# Docker
+############################
+
+# Docker build cache
+.dockerignore.bak
+docker-compose.override.yml
+
+############################
+# Development and Build
+############################
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+dist/
+build/
+out/
+target/
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+############################
+# Scripts and Generated Files
+############################
+
+# Generated server files
+enhanced-server.js
+server.js.backup
+
+# Deployment scripts output
+deployment.log
+deploy-*.log
+
+############################
+# Large Files and Binaries
+############################
+
+# Large media files
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+
+# Large image files
+*.psd
+*.ai
+*.sketch
+
+# Database dumps
+*.dump
+*.sql.gz
+
+# Archive files larger than 10MB
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
