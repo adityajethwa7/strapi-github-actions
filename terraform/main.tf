@@ -36,6 +36,18 @@ resource "aws_ecs_cluster" "main" {
   }
 }
 
+resource "aws_ecs_cluster_capacity_providers" "main" {
+  cluster_name = aws_ecs_cluster.main.name
+
+  capacity_providers = ["FARGATE_SPOT", "FARGATE"]
+
+  default_capacity_provider_strategy {
+    base              = 0
+    weight            = 100
+    capacity_provider = "FARGATE_SPOT"
+  }
+}
+
 # Task Definition
 resource "aws_ecs_task_definition" "strapi" {
   family                   = "strapi-task-${terraform.workspace}"
@@ -182,8 +194,14 @@ resource "aws_ecs_service" "strapi" {
   cluster                           = aws_ecs_cluster.main.id
   task_definition                   = aws_ecs_task_definition.strapi.arn
   desired_count                     = 1
-  launch_type                       = "FARGATE"
   health_check_grace_period_seconds = 300
+  enable_execute_command            = true
+
+  capacity_provider_strategy {
+    capacity_provider = "FARGATE_SPOT"
+    weight           = 100
+    base             = 0
+  }
 
   network_configuration {
     subnets          = data.aws_subnets.default.ids
